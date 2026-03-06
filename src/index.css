@@ -6,8 +6,12 @@
 
 @layer base {
   :root {
-    --background: 220 20% 4%;
-    --foreground: 210 20% 92%;
+    --background: 220 20% 98%; /* Helles Glas */
+    --foreground: 210 20% 20%;
+    --glass-bg: rgba(255,255,255,0.7);
+    --glass-blur: 16px;
+    --glass-border: 1px solid rgba(255,255,255,0.3);
+    --glow-primary: 0 0 40px hsl(45 90% 55% / 0.25);
 
     --card: 220 18% 8%;
     --card-foreground: 210 20% 92%;

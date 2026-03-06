@@ -45,10 +45,30 @@ export default function ClusterDetail() {
     );
   }
 
-  const activeCount = cluster.partners.filter((p) => p.status === "active").length;
-  const reviewCount = cluster.partners.filter((p) => p.status === "review").length;
-  const memberCount = cluster.partners.filter((p) => p.status === "membership").length;
-  const countries = [...new Set(cluster.partners.map((p) => p.country).filter(Boolean))];
+  // Filter State
+  const [search, setSearch] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
+  const [countryFilter, setCountryFilter] = React.useState<string[]>([]);
+  const [integrationFilter, setIntegrationFilter] = React.useState<string[]>([]);
+
+  // Filter Options
+  const statusOptions = Array.from(new Set(cluster.partners.map(p => p.status || "active")));
+  const countryOptions = Array.from(new Set(cluster.partners.map(p => p.country).filter(Boolean)));
+  const integrationOptions = Array.from(new Set(cluster.partners.flatMap(p => p.integration ? p.integration.split(", ") : [])));
+
+  // Filtered Partners
+  const filteredPartners = cluster.partners.filter(p => {
+    const matchesSearch = search === "" || p.name.toLowerCase().includes(search.toLowerCase()) || (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(p.status || "active");
+    const matchesCountry = countryFilter.length === 0 || countryFilter.includes(p.country || "");
+    const matchesIntegration = integrationFilter.length === 0 || (p.integration && integrationFilter.some(f => p.integration?.includes(f)));
+    return matchesSearch && matchesStatus && matchesCountry && matchesIntegration;
+  });
+
+  const activeCount = filteredPartners.filter((p) => p.status === "active").length;
+  const reviewCount = filteredPartners.filter((p) => p.status === "review").length;
+  const memberCount = filteredPartners.filter((p) => p.status === "membership").length;
+  const countries = [...new Set(filteredPartners.map((p) => p.country).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,8 +144,58 @@ export default function ClusterDetail() {
 
       {/* Partner Grid */}
       <main className="max-w-6xl mx-auto px-6 py-10">
+        {/* Filter UI */}
+        <div className="mb-8 flex flex-wrap gap-4 items-center">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Suche Partner oder Beschreibung..."
+            className="px-4 py-2 rounded border border-border bg-card text-foreground focus:border-primary focus:outline-none cluster-detail-filter"
+          />
+          {/* Status Multi-Select */}
+          <select
+            multiple
+            value={statusFilter}
+            onChange={e => setStatusFilter(Array.from(e.target.selectedOptions, o => o.value))}
+            className="px-4 py-2 rounded border border-border bg-card text-foreground focus:border-primary focus:outline-none cluster-detail-select"
+            title="Status Filter"
+          >
+            <option value="">Status wählen...</option>
+            {statusOptions.map(opt => (
+              <option key={opt} value={opt}>{STATUS_LABELS[opt]?.label || opt}</option>
+            ))}
+          </select>
+          {/* Country Multi-Select */}
+          <select
+            multiple
+            value={countryFilter}
+            onChange={e => setCountryFilter(Array.from(e.target.selectedOptions, o => o.value))}
+            className="px-4 py-2 rounded border border-border bg-card text-foreground focus:border-primary focus:outline-none cluster-detail-select"
+            title="Land Filter"
+          >
+            <option value="">Land wählen...</option>
+            {countryOptions.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+          {/* Integration Multi-Select */}
+          <select
+            multiple
+            value={integrationFilter}
+            onChange={e => setIntegrationFilter(Array.from(e.target.selectedOptions, o => o.value))}
+            className="px-4 py-2 rounded border border-border bg-card text-foreground focus:border-primary focus:outline-none cluster-detail-integration-select"
+            title="Integration Filter"
+          >
+            <option value="">Integration wählen...</option>
+            {integrationOptions.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+        {/* Partner Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {cluster.partners.map((partner, i) => {
+          {filteredPartners.map((partner, i) => {
             const status = STATUS_LABELS[partner.status || "active"];
             return (
               <motion.div
@@ -152,14 +222,12 @@ export default function ClusterDetail() {
                     <span className="text-[10px] text-muted-foreground font-mono">{status.label}</span>
                   </div>
                 </div>
-
                 {/* Description */}
                 {partner.description && (
                   <p className="text-sm text-foreground/70 mb-3 leading-relaxed">
                     {partner.description}
                   </p>
                 )}
-
                 {/* Leader */}
                 {partner.leader && (
                   <div className="flex items-center gap-2 mb-2 text-xs">
@@ -172,7 +240,6 @@ export default function ClusterDetail() {
                     </div>
                   </div>
                 )}
-
                 {/* Meta */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-border/50 text-[11px] text-muted-foreground">
                   {partner.city && (
@@ -192,7 +259,6 @@ export default function ClusterDetail() {
                     </span>
                   )}
                 </div>
-
                 {/* Integration */}
                 {partner.integration && (
                   <div className="mt-3 pt-2 border-t border-border/30">
@@ -204,12 +270,7 @@ export default function ClusterDetail() {
                       {partner.integration.split(", ").map((tag) => (
                         <span
                           key={tag}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-mono border"
-                          style={{
-                            backgroundColor: `hsl(${CLUSTER_COLORS[cluster.key]} / 0.06)`,
-                            borderColor: `hsl(${CLUSTER_COLORS[cluster.key]} / 0.15)`,
-                            color: `hsl(${CLUSTER_COLORS[cluster.key]})`,
-                          }}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-mono border cluster-detail-tag"
                         >
                           {tag}
                         </span>

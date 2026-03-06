@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ClusterDetail from "./pages/ClusterDetail";
 import NotFound from "./pages/NotFound";
+import Timeline from "./pages/Timeline";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/timeline" element={<Timeline />} />
           <Route path="/cluster/:clusterId" element={<ClusterDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

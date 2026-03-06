@@ -60,11 +60,7 @@ const Index = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
                 onClick={() => navigate(`/cluster/${c.key}`)}
-                className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-5 cursor-pointer hover:border-primary/30 transition-all group"
-                style={{
-                  borderTopColor: `hsl(${CLUSTER_COLORS[c.key]} / 0.5)`,
-                  borderTopWidth: 2,
-                }}
+                className="glass-section border border-border rounded-xl p-5 cursor-pointer hover:border-primary/30 transition-all group"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-3xl">{c.icon}</span>
